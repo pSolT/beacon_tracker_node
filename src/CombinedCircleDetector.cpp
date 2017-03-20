@@ -4,7 +4,7 @@
 
 #include "../include/CombinedCircleDetector.h"
 
-void CombinedCircleDetector::Detect(cv::Mat &image)
+std::vector<cv::Point> CombinedCircleDetector::Detect(cv::Mat &image)
 {
     const float dp = 1.0f;
     const float minDist = 100.0f;
@@ -24,10 +24,14 @@ void CombinedCircleDetector::Detect(cv::Mat &image)
     cv::imshow("debug", mask);
     std::vector<cv::Vec3f> circles;
 
+    std::vector<cv::Point> result;
+
+
     HoughCircles(mask, circles, CV_HOUGH_GRADIENT, dp, minDist, cannyThreshold, votesThreshold, minRadius, maxRadius);
     for( size_t i = 0; i < circles.size(); i++ )
     {
         cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+        result.push_back(center);
         int radius = cvRound(circles[i][2]);
         // draw the circle center
         circle( image, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
@@ -35,5 +39,6 @@ void CombinedCircleDetector::Detect(cv::Mat &image)
         circle( image, center, radius, cv::Scalar(0,0,255), 3, 8, 0 );
     }
 
+    return result;
 
 }

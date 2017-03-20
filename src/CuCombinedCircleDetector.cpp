@@ -4,7 +4,7 @@
 
 #include "../include/CuCombinedCircleDetector.h"
 
-void CuCombinedCircleDetector::Detect(cv::Mat &image)
+std::vector<cv::Point> CuCombinedCircleDetector::Detect(cv::Mat &image)
 {
     const float dp = 1.0f;
     const float minDist = 5.0f;
@@ -37,10 +37,11 @@ void CuCombinedCircleDetector::Detect(cv::Mat &image)
         dCircles.row(0).download(cv::Mat(circlesGPU).reshape(3, 1));
     }
 
-
+    std::vector<cv::Point> result;
     for( size_t i = 0; i < circlesGPU.size(); i++ )
     {
         cv::Point center(cvRound(circlesGPU[i][0]), cvRound(circlesGPU[i][1]));
+        result.push_back(center);
         int radius = cvRound(circlesGPU[i][2]);
         // draw the circle center
         std::cout << center.x << " " << center.y  << " " << radius << std::endl;
@@ -50,5 +51,6 @@ void CuCombinedCircleDetector::Detect(cv::Mat &image)
 
     }
 
+    return result;
 
 }

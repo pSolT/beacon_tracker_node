@@ -11,7 +11,7 @@
 class CuHoughCircleDetector : public ICuCircleDetector {
 
 public:
-    void Detect(cv::Mat& image) override;
+    std::vector<cv::Point> Detect(cv::Mat& image) override;
 };
 
 

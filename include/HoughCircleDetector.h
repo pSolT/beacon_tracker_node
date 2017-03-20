@@ -10,7 +10,7 @@
 class HoughCircleDetector: public ICircleDetector  {
 
 public:
-    void Detect(cv::Mat& image);
+    std::vector<cv::Point> Detect(cv::Mat& image);
 
 };
 

@@ -4,7 +4,7 @@
 
 #include "../include/ColourFilterCircleDetector.h"
 
-void ColourFilterCircleDetector::Detect(cv::Mat &image)
+std::vector<cv::Point> ColourFilterCircleDetector::Detect(cv::Mat &image)
 {
     cv::Mat hsv;
     cv::Mat mask;
@@ -20,6 +20,9 @@ void ColourFilterCircleDetector::Detect(cv::Mat &image)
     cv::imshow("debug", imgH);
     findContours(mask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point{0, 0} );
     std::cout << contours.size() << std::endl;
+
+    std::vector<cv::Point> result;
+
     if(contours.size() > 0)
     {
         auto contour = std::max_element
@@ -36,9 +39,11 @@ void ColourFilterCircleDetector::Detect(cv::Mat &image)
         float radius;
         minEnclosingCircle(*contour, center, radius);
 
+        result.emplace_back(cvRound(center.x), cvRound(center.y));
+
         circle( image, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
         // draw the circle outline
         circle( image, center, radius, cv::Scalar(0,0,255), 3, 8, 0 );
     }
-
+    return result;
 }

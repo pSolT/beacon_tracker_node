@@ -11,7 +11,7 @@ private:
 public:
     CombinedCircleDetector(cv::Scalar colourLowerBoundar, cv::Scalar colourUpperBoundary)
     : colourLowerBoundary_(colourLowerBoundar), colourUpperBoundary_(colourUpperBoundary) {}
-    void Detect(cv::Mat& image);
+    std::vector<cv::Point> Detect(cv::Mat& image);
 
 };
 

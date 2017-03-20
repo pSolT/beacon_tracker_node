@@ -14,7 +14,7 @@
 class ICuCircleDetector: public ICircleDetector {
 public:
     virtual ~ICuCircleDetector() {}
-    virtual void Detect(cv::Mat& image) = 0;
+    virtual std::vector<cv::Point> Detect(cv::Mat& image) = 0;
 };
 
 

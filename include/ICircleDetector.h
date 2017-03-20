@@ -5,13 +5,14 @@
 #ifndef BEACONDETECTIONPLAYGROUND_ICIRCLEDETECTOR_H
 #define BEACONDETECTIONPLAYGROUND_ICIRCLEDETECTOR_H
 
+#include <vector>
 #include <opencv2/opencv.hpp>
 
 class ICircleDetector {
 
 public:
     virtual ~ICircleDetector() {}
-    virtual void Detect(cv::Mat& image) = 0;
+    virtual std::vector<cv::Point> Detect(cv::Mat& image) = 0;
 
 };
 
