@@ -36,14 +36,17 @@ protected:
     std::mutex m;
     std::condition_variable changed;
 
-    struct FullData
+    struct Event
     {
-      const sensor_msgs::PointCloud2 * pointCloud = nullptr;
-      const sensor_msgs::Image * image = nullptr;
-      const sensor_msgs::Image * depth = nullptr;
+      sensor_msgs::PointCloud2 pointCloud;
+      bool pointCloundInitialized = false;
+      sensor_msgs::Image image;
+      bool imageInitialized = false;
+      sensor_msgs::Image depth;
+      bool depthInitialized = false;
     };
 
-    std::map<uint32_t, FullData> events;
+    std::map<uint32_t, Event> events;
 
 public:
     BeaconLocator() = default;
@@ -66,8 +69,6 @@ public:
         this->beacon2LocationPublisher = nh->advertise<geometry_msgs::PoseStamped>(beacon2LocationTopic, 100);
 
         worker = new std::thread(&BeaconLocator::ProcessEvents, this);
-        //cv::namedWindow("Image", cv::WINDOW_AUTOSIZE);
-        //cv::namedWindow("Depth", cv::WINDOW_AUTOSIZE);
     }
 
     ~BeaconLocator() {}
@@ -76,21 +77,24 @@ private:
     void PointCloudHandler(const sensor_msgs::PointCloud2& pcl)
     {
         std::unique_lock<std::mutex> lock(m);
-        events[pcl.header.seq].pointCloud = &pcl;
+        events[pcl.header.seq].pointCloud = pcl;
+        events[pcl.header.seq].pointCloundInitialized = true;
         changed.notify_one();
     }
 
     void DepthHandler(const sensor_msgs::Image& image)
     {
         std::unique_lock<std::mutex> lock(m);
-        events[image.header.seq].depth = &image;
+        events[image.header.seq].depth = image;
+        events[image.header.seq].depthInitialized = true;
         changed.notify_one();
     }
 
     void ImageHandler(const sensor_msgs::Image& image)
     {
         std::unique_lock<std::mutex> lock(m);
-        events[image.header.seq].image = &image;
+        events[image.header.seq].image = image;
+        events[image.header.seq].imageInitialized = true;
         changed.notify_one();
     }
 
@@ -102,9 +106,9 @@ private:
               changed.wait(lock);
               for (auto it = events.begin(); it != events.end();)
               {
-                  if((*it).second.pointCloud and (*it).second.image and (*it).second.depth )
+                  if((*it).second.pointCloundInitialized and (*it).second.imageInitialized and (*it).second.depthInitialized )
                   {
-                      ProcessEvent((*it).second.image, (*it).second.depth, (*it).second.pointCloud);
+                      ProcessEvent((*it).second);
                       std::cout << (*it).first << " done!" << std::endl;
                       events.erase(it++);
                   }
@@ -120,22 +124,42 @@ private:
 
     void ProcessEvent
     (
-        const sensor_msgs::Image * image,
-        const sensor_msgs::Image * depth,
-        const sensor_msgs::PointCloud2 * pointCloud
+        const Event & event
     )
     {
-        auto cvImage = cv_bridge::toCvCopy(*image);
-
-        std::vector<cv::Point> beaconCentres = detector->Detect(cvImage->image);
-        for(const auto& point: beaconCentres)
+        try
         {
-          geometry_msgs::PoseStamped beaconPosition;
-          beaconPosition.pose.position.x = point.x;
-          beaconPosition.pose.position.y = point.y;
-          this->beacon1LocationPublisher.publish(beaconPosition);
-        }
+            auto cvImage = cv_bridge::toCvCopy(event.image);
+            std::vector<cv::Point> beaconCentres = detector->Detect(cvImage->image);
+            std::cout << beaconCentres.size() << std::endl;
+            for(const auto& point: beaconCentres)
+            {
+              uint32_t offset = point.y * event.pointCloud.row_step + point.x * event.pointCloud.point_step;
 
+              int arrayPosX = offset + event.pointCloud.fields[0].offset; // X has an offset of 0
+              int arrayPosY = offset + event.pointCloud.fields[1].offset; // Y has an offset of 4
+              int arrayPosZ = offset + event.pointCloud.fields[2].offset; // Z has an offset of 8
+
+              float x = 0.0;
+              float y = 0.0;
+              float z = 0.0;
+
+              memcpy(&x, &event.pointCloud.data[arrayPosX], sizeof(float));
+              memcpy(&y, &event.pointCloud.data[arrayPosY], sizeof(float));
+              memcpy(&z, &event.pointCloud.data[arrayPosZ], sizeof(float));
+
+              geometry_msgs::PoseStamped beaconPosition;
+              beaconPosition.pose.position.x = x;
+              beaconPosition.pose.position.y = y;
+              beaconPosition.pose.position.z = z;
+              this->beacon1LocationPublisher.publish(beaconPosition);
+            }
+        }
+        catch (cv_bridge::Exception& e)
+        {
+            ROS_ERROR("cv_bridge exception: %s", e.what());
+            return;
+        }
     }
 
 };

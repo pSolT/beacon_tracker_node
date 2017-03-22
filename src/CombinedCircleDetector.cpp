@@ -21,7 +21,7 @@ std::vector<cv::Point> CombinedCircleDetector::Detect(cv::Mat &image)
     std::vector<std::vector<cv::Point> > contours;
 
     inRange(hsv,colourLowerBoundary_,colourUpperBoundary_,mask);
-    cv::imshow("debug", mask);
+
     std::vector<cv::Vec3f> circles;
 
     std::vector<cv::Point> result;
@@ -32,11 +32,14 @@ std::vector<cv::Point> CombinedCircleDetector::Detect(cv::Mat &image)
     {
         cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
         result.push_back(center);
+        /*
         int radius = cvRound(circles[i][2]);
         // draw the circle center
         circle( image, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
         // draw the circle outline
         circle( image, center, radius, cv::Scalar(0,0,255), 3, 8, 0 );
+        */
+
     }
 
     return result;

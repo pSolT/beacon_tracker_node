@@ -20,7 +20,7 @@ std::vector<cv::Point> CuCombinedCircleDetector::Detect(cv::Mat &image)
 
     cv::Mat filtered;
     dGray.download(filtered);
-    imshow("filtered", filtered);
+  
     cv::cuda::GpuMat dCircles;
     {
 

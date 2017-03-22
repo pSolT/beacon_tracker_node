@@ -17,7 +17,7 @@ std::vector<cv::Point> ColourFilterCircleDetector::Detect(cv::Mat &image)
     inRange(hsv,colourLowerBoundary_,colourUpperBoundary_,mask);
     erode(mask, mask, cv::Mat(), cv::Point{0, 0}, 2);
     dilate(mask, mask, cv::Mat(), cv::Point{0, 0}, 2);
-    cv::imshow("debug", imgH);
+    cv::imshow("w1", imgH);
     findContours(mask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cv::Point{0, 0} );
     std::cout << contours.size() << std::endl;
 
@@ -44,6 +44,7 @@ std::vector<cv::Point> ColourFilterCircleDetector::Detect(cv::Mat &image)
         circle( image, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
         // draw the circle outline
         circle( image, center, radius, cv::Scalar(0,0,255), 3, 8, 0 );
+
     }
     return result;
 }

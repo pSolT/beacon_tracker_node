@@ -21,7 +21,7 @@ std::vector<cv::Point> CuHoughCircleDetector::Detect(cv::Mat &image)
     inRange(hsv,cv::Scalar(30, 100, 100), cv::Scalar(90, 255, 255) ,mask);
     GaussianBlur( mask, mask, cv::Size(9, 9), 2, 2 );
     cv::cuda::GpuMat dGray;
-    imshow("filtered", mask);
+
     dGray.upload(mask);
     cv::cuda::GpuMat dCircles;
     {
